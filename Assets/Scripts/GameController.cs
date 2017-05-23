@@ -16,9 +16,11 @@ public class GameController : MonoBehaviour
 	public GUIText restartText;
 	public GUIText gameOverText;
 
+
 	private bool gameOver;
 	private bool restart;
 	private int score;
+	private bool touched;
 
     void Start()
     {
@@ -33,8 +35,9 @@ public class GameController : MonoBehaviour
 
 	void Update(){
 		if (restart) {
-			if (Input.GetKeyDown (KeyCode.R)) {
+			if (Input.anyKey) {
 				UnityEngine.SceneManagement.SceneManager.LoadScene("Scene_1");
+				restart = false;
 			}
 		}
 	}
@@ -55,7 +58,7 @@ public class GameController : MonoBehaviour
             yield return new WaitForSeconds(waveWait);
 
 			if (gameOver) {
-				restartText.text = "press 'R' to restart";
+				restartText.text = "press screen to restart";
 				restart = true;
 				break;
 			}

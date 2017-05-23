@@ -16,21 +16,25 @@ public class PlayerController : MonoBehaviour {
     public float tilt;
 
     public Boundary boundary;
+	public SimpleTouchPad touchPad;
 
     public GameObject shot;
     public Transform shotSpawn;
-    public float fireRate;
-    private float nextFire;
+	public float fireRate;
+    
+	private float nextFire;
+	private Quaternion calibrationQuaternion;
 
     void Start()
     {
+		CalibrateAccellerometer ();
         rb = GetComponent<Rigidbody>();
         audio = GetComponent<AudioSource>();
     }
 
     void Update()
     {
-        if (Input.GetKey("space") && Time.time > nextFire)
+        if (Time.time > nextFire)
         {
             nextFire = Time.time + fireRate;
             Instantiate(shot, shotSpawn.position, shotSpawn.rotation);
@@ -40,11 +44,18 @@ public class PlayerController : MonoBehaviour {
 
     void FixedUpdate()
     {
-        float moveHorizontal = Input.GetAxis("Horizontal");
-        float moveVertical = Input.GetAxis("Vertical");
+        //float moveHorizontal = Input.GetAxis("Horizontal");
+        //float moveVertical = Input.GetAxis("Vertical");
 
-        Vector3 movement = new Vector3(moveHorizontal, 0.0f, moveVertical);
-        rb.velocity = movement * speed ;
+        //Vector3 movement = new Vector3(moveHorizontal, 0.0f, moveVertical);
+
+		//Vector3 accelerationRaw = Input.acceleration;
+		//Vector3 acceleration = FixAccelleration (accelerationRaw);
+
+		Vector2 direction = touchPad.GetDirection ();
+		Vector3 movement = new Vector3(direction.x, 0.0f, direction.y);
+
+		rb.velocity = movement * speed ;
 
         rb.position = new Vector3(
             Mathf.Clamp(rb.position.x, boundary.xMin, boundary.xMax), 
@@ -54,4 +65,15 @@ public class PlayerController : MonoBehaviour {
 
         rb.rotation = Quaternion.Euler(0.0f, 0.0f, rb.velocity.x * -tilt);
     }
+
+	void CalibrateAccellerometer(){
+		Vector3 accelerationSnapshot = Input.acceleration;
+		Quaternion rotateQuaternion = Quaternion.FromToRotation (new Vector3 (0.0f, 0.0f, -1.0f), accelerationSnapshot);
+		calibrationQuaternion = Quaternion.Inverse (rotateQuaternion);
+	}
+
+	Vector3 FixAccelleration(Vector3 acceleration){
+		Vector3 fixedAcceleration = calibrationQuaternion * acceleration;
+		return fixedAcceleration;
+	}
 }
